@@ -21,38 +21,35 @@ chrome.commands.onCommand.addListener(async (command) => {
         });
         console.log("URL copied to clipboard via scripting:", tab.url);
 
-        // Create a notification to confirm the copy action
-        chrome.notifications.create(
-          {
-            type: "basic",
-            iconUrl: "clipboard.png", // Make sure you have an icon48.png in your extension's folder
-            title: "URL Copied!",
-            message: `Copied: ${tab.url}`,
-            priority: 0, // Priority can range from -2 to 2. 0 is default.
-            // eventTime: Date.now() // Optional: adds a timestamp
+        // Inject a custom toast into the page to confirm copy
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: (url) => {
+            const toast = document.createElement('div');
+            Object.assign(toast.style, {
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              padding: '10px 20px',
+              background: 'rgba(0,0,0,0.8)',
+              color: '#fff',
+              borderRadius: '4px',
+              fontSize: '14px',
+              zIndex: 2147483647,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+              opacity: '0',
+              transition: 'opacity 0.3s ease-in-out',
+            });
+            toast.textContent = `Copied: ${url}`;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => { toast.style.opacity = '1'; });
+            setTimeout(() => {
+              toast.style.opacity = '0';
+              setTimeout(() => toast.remove(), 300);
+            }, 3000);
           },
-          (notificationId) => {
-            // Optional: Clear the notification after a few seconds
-            if (chrome.runtime.lastError) {
-              console.error(
-                "Notification error:",
-                chrome.runtime.lastError.message
-              );
-            } else {
-              setTimeout(() => {
-                chrome.notifications.clear(notificationId, (wasCleared) => {
-                  if (wasCleared) {
-                    console.log("Notification cleared.");
-                  } else {
-                    console.log(
-                      "Notification could not be cleared (it might have been closed by the user or timed out)."
-                    );
-                  }
-                });
-              }, 3000); // Clears the notification after 3 seconds
-            }
-          }
-        );
+          args: [tab.url],
+        });
       } else {
         console.error("Could not get active tab or tab URL.");
       }
