@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Copy Page URL Shortcut",
+  "version": "1.0.1",
+  "description": "Copies the current page's URL to the clipboard using (Cmd/Ctrl)+Shift+C.",
+  "permissions": ["activeTab", "clipboardWrite"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "copy-current-url": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+C",
+        "mac": "Command+Shift+C"
+      },
+      "description": "Copy current page URL"
+    }
+  }
+}
